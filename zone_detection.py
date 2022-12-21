@@ -6,12 +6,12 @@ def find_zone(bboxes):
   MAX_W = 1280
   zones = []
 
-  ice_polygon_xy = [(830,MAX_H - 80),(735,MAX_H - 235),(840,MAX_H - 265),(910,MAX_H - 105)]
-  water_polygon_xy = [(740,MAX_H - 55),(625,MAX_H - 200),(735,MAX_H - 235),(830,MAX_H - 80)]
-  alcohol_polygon_xy = [(625,MAX_H - 200),(415,MAX_H - 467),(530,MAX_H - 525),(735,MAX_H - 235)]
-  popsicle_polygon_xy = [(735,MAX_H - 235),(530,MAX_H - 525),(675,MAX_H - 590),(840,MAX_H - 265)]
-  counter_polygon_xy = [(415,MAX_H - 467),(235,MAX_H - 718),(460,MAX_H - 718),(565,MAX_H - 540)]
-  snack_polygon_xy = [(565,MAX_H - 540),(460,MAX_H - 718),(725,MAX_H - 718),(760,MAX_H - 630)]
+  ice_polygon_xy = [(830, 80),(735, 235),(840, 265),(910, 105)]
+  water_polygon_xy = [(740, 55),(625, 200),(735, 235),(830, 80)]
+  alcohol_polygon_xy = [(625, 200),(415, 467),(530, 525),(735, 235)]
+  popsicle_polygon_xy = [(735, 235),(530, 525),(675, 590),(840, 265)]
+  counter_polygon_xy = [(415, 467),(235, 718),(460, 718),(565, 540)]
+  snack_polygon_xy = [(565, 540),(460, 718),(725, 718),(760, 630)]
 
   zones.append(snack_polygon_xy)
   zones.append(counter_polygon_xy)
@@ -20,7 +20,7 @@ def find_zone(bboxes):
   zones.append(water_polygon_xy)
   zones.append(alcohol_polygon_xy)
 
-  posistion_roi = (int(bboxes[0]) + ((bboxes[2])/2), MAX_H - int((bboxes[1])+(bboxes[3])) + 10)
+  posistion_roi = ((int(bboxes[0]+bboxes[2])/2), int(bboxes[3]-10))
   index = 0
   for zone in zones:
       polygon_zone_shape = Polygon(zone)
@@ -32,7 +32,7 @@ def find_zone(bboxes):
       
       index += 1
 
-  return ""
+  return "undefined"
 
 def number_to_string(argument):
     if argument == 0:
