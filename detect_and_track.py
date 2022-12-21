@@ -264,11 +264,11 @@ def detect(save_img=False):
                         if zone in zone_dict:
                           frame_set = zone_dict[zone]
                           frame_set.append(frame_idx)
-                        else if zone != '':
+                        elif zone != '':
                           frame_set = [frame_idx]
                           zone_dict[zone] = frame_set
                           id_zone_frame[id][zone] = zone_dict[zone]
-                      else if zone != '':
+                      elif zone != '':
                         frame_set = [frame_idx]
                         zone_dict = {zone : frame_set}
                         id_zone_frame[id] = zone_dict
