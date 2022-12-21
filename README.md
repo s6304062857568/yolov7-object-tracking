@@ -1,15 +1,16 @@
 # yolov7-object-tracking
 
 **Features**
-- a
-- b
-- c
+- [ ] a
+- [ ] b
+- [ ] c
 
 ---
 **TODO**
-1. draw ROI
-2. detect ROI
-3. Summary
+- [x] draw ROI
+- [x] detect ROI
+- [x] summary
+- [ ] more.
 
 ---
 **Reference**
