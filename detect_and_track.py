@@ -206,22 +206,22 @@ def detect(save_img=False):
                     # color = compute_color_for_labels(id)
                     #draw colored tracks
                     if colored_trk:
-                        [cv2.line(im0, (int(track.centroidarr[i][0]),
-                                    int(track.centroidarr[i][1])), 
-                                    (int(track.centroidarr[i+1][0]),
-                                    int(track.centroidarr[i+1][1])),
+                        [cv2.line(im0, (int(track.roiarr[i][0]),
+                                    int(track.roiarr[i][1])), 
+                                    (int(track.roiarr[i+1][0]),
+                                    int(track.roiarr[i+1][1])),
                                     rand_color_list[track.id], thickness=2) 
-                                    for i,_ in  enumerate(track.centroidarr) 
-                                      if i < len(track.centroidarr)-1 ] 
+                                    for i,_ in  enumerate(track.roiarr) 
+                                      if i < len(track.roiarr)-1 ] 
                     #draw same color tracks
                     else:
-                        [cv2.line(im0, (int(track.centroidarr[i][0]),
-                                    int(track.centroidarr[i][1])), 
-                                    (int(track.centroidarr[i+1][0]),
-                                    int(track.centroidarr[i+1][1])),
+                        [cv2.line(im0, (int(track.roiarr[i][0]),
+                                    int(track.roiarr[i][1])), 
+                                    (int(track.roiarr[i+1][0]),
+                                    int(track.roiarr[i+1][1])),
                                     (255,0,0), thickness=2) 
-                                    for i,_ in  enumerate(track.centroidarr) 
-                                      if i < len(track.centroidarr)-1 ] 
+                                    for i,_ in  enumerate(track.roiarr) 
+                                      if i < len(track.roiarr)-1 ] 
 
                     if save_txt and not save_with_object_id:
                         # Normalize coordinates
@@ -264,11 +264,11 @@ def detect(save_img=False):
                         if zone in zone_dict:
                           frame_set = zone_dict[zone]
                           frame_set.append(frame_idx)
-                        else:
+                        else if zone != '':
                           frame_set = [frame_idx]
                           zone_dict[zone] = frame_set
                           id_zone_frame[id][zone] = zone_dict[zone]
-                      else:
+                      else if zone != '':
                         frame_set = [frame_idx]
                         zone_dict = {zone : frame_set}
                         id_zone_frame[id] = zone_dict
