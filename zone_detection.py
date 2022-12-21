@@ -27,12 +27,12 @@ def find_zone(bboxes):
       #intersection = polygon_zone_shape.intersection(pol)
       #intersection_ratio = intersection.area / pol.area
       if (polygon_zone_shape.intersects(Point(posistion_roi))):
-        print('zone',number_to_string(index))
+        #print('zone',number_to_string(index))
         return number_to_string(index)
       
       index += 1
 
-  return "undefined"
+  return ""
 
 def number_to_string(argument):
     if argument == 0:
