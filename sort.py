@@ -120,6 +120,8 @@ class KalmanBoxTracker(object):
         self.detclass = bbox[5]
         CX = (bbox[0]+bbox[2])//2
         CY = (bbox[1]+bbox[3])//2
+        CZ = (bbox[3]-10)
+        self.roiarr.append((CX,CZ))
         self.centroidarr.append((CX,CY))
         self.bbox_history.append(bbox)
     
