@@ -137,6 +137,7 @@ def detect(save_img=False):
     t0 = time.time()
 
     id_zone_frame = {} # Declare variables
+    txt_file_name = ''
     
     for frame_idx, (path, img, im0s, vid_cap) in enumerate(dataset):
         img = torch.from_numpy(img).to(device)
@@ -175,7 +176,8 @@ def detect(save_img=False):
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
-            txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
+            #txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
+            txt_path = str(save_dir / 'labels' / p.stem)
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             if len(det):
                 # Rescale boxes from img_size to im0 size
@@ -244,6 +246,12 @@ def detect(save_img=False):
 
                     # -------------- Start : Custom code -------------- #
                     for i, box in enumerate(bbox_xyxy):
+                      # to MOT format
+                      bbox_left = int(box[0])
+                      bbox_top = int(box[1])
+                      bbox_w = int(box[2] - box[0])
+                      bbox_h = int(box[3] - box[1])
+
                       x1, y1, x2, y2 = [int(i) for i in box]
                       cat = int(categories[i]) if categories is not None else 0
                       id = int(identities[i]) if identities is not None else 0
@@ -257,6 +265,12 @@ def detect(save_img=False):
                       cv2.putText(im0, label, (x1, y1 - 5),cv2.FONT_HERSHEY_SIMPLEX, 
                                   0.6, [255, 255, 255], 1)
                       cv2.circle(im0, roi, 3, [0,69,255], 3) # position of ROI
+
+                      # Write MOT compliant results to file
+                      with open(txt_path + '.txt', 'a') as f:
+                          f.write(('%g ' * 10 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
+                                                          bbox_top, bbox_w, bbox_h, -1, -1, -1, i))
+                                                          
 
                       # save detail each id -> id, zone, frame
                       if id in id_zone_frame:
@@ -273,6 +287,9 @@ def detect(save_img=False):
                         zone_dict = {zone : frame_set}
                         id_zone_frame[id] = zone_dict
                       # -------------- End : Custom code -------------- #
+
+                      
+                      
                 #........................................................
                 
             # Print time (inference + NMS)
@@ -310,7 +327,7 @@ def detect(save_img=False):
 
     if save_txt or save_img or save_with_object_id:
         s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-        #print(f"Results saved to {save_dir}{s}")
+        print(f"Results saved to {save_dir}{s}")
 
     print(f'Done. ({time.time() - t0:.3f}s)')
     print(id_zone_frame)
