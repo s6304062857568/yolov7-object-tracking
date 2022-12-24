@@ -8,7 +8,7 @@ from numpy import random
 from random import randint
 import torch.backends.cudnn as cudnn
 
-from zone_detection import find_zone, draw_ROI
+from zone_detection import find_zone, find_zone_by_position, draw_ROI
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -20,6 +20,8 @@ from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, \
                 time_synchronized, TracedModel
 from utils.download_weights import download
+
+from skimage.metrics import structural_similarity
 
 #For SORT tracking
 import skimage
@@ -137,7 +139,7 @@ def detect(save_img=False):
     t0 = time.time()
 
     id_zone_frame = {} # Declare variables
-    txt_file_name = ''
+    before = None # image blueprint
     
     for frame_idx, (path, img, im0s, vid_cap) in enumerate(dataset):
         img = torch.from_numpy(img).to(device)
@@ -174,6 +176,9 @@ def detect(save_img=False):
             else:
                 p, s, im0, frame = path, '', im0s, getattr(dataset, 'frame', 0)
 
+            if frame_idx == 0:
+              before = im0.copy()
+
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
             #txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
@@ -204,26 +209,26 @@ def detect(save_img=False):
                 txt_str = ""
 
                 #loop over tracks
-                for track in tracks:
-                    # color = compute_color_for_labels(id)
-                    #draw colored tracks
-                    if colored_trk:
-                        [cv2.line(im0, (int(track.roiarr[i][0]),
-                                    int(track.roiarr[i][1])), 
-                                    (int(track.roiarr[i+1][0]),
-                                    int(track.roiarr[i+1][1])),
-                                    rand_color_list[track.id], thickness=2) 
-                                    for i,_ in  enumerate(track.roiarr) 
-                                      if i < len(track.roiarr)-1 ] 
-                    #draw same color tracks
-                    else:
-                        [cv2.line(im0, (int(track.roiarr[i][0]),
-                                    int(track.roiarr[i][1])), 
-                                    (int(track.roiarr[i+1][0]),
-                                    int(track.roiarr[i+1][1])),
-                                    (255,0,0), thickness=2) 
-                                    for i,_ in  enumerate(track.roiarr) 
-                                      if i < len(track.roiarr)-1 ] 
+                # for track in tracks:
+                #     # color = compute_color_for_labels(id)
+                #     #draw colored tracks
+                #     if colored_trk:
+                #         [cv2.line(im0, (int(track.roiarr[i][0]),
+                #                     int(track.roiarr[i][1])), 
+                #                     (int(track.roiarr[i+1][0]),
+                #                     int(track.roiarr[i+1][1])),
+                #                     rand_color_list[track.id], thickness=2) 
+                #                     for i,_ in  enumerate(track.roiarr) 
+                #                       if i < len(track.roiarr)-1 ] 
+                #     #draw same color tracks
+                #     else:
+                #         [cv2.line(im0, (int(track.roiarr[i][0]),
+                #                     int(track.roiarr[i][1])), 
+                #                     (int(track.roiarr[i+1][0]),
+                #                     int(track.roiarr[i+1][1])),
+                #                     (255,0,0), thickness=2) 
+                #                     for i,_ in  enumerate(track.roiarr) 
+                #                       if i < len(track.roiarr)-1 ] 
 
 #                     if save_txt and not save_with_object_id:
 #                         # Normalize coordinates
@@ -251,25 +256,91 @@ def detect(save_img=False):
                       bbox_top = int(box[1])
                       bbox_w = int(box[2] - box[0])
                       bbox_h = int(box[3] - box[1])
+                      bbox_bx = int(box[2])
+                      bbox_by = int(box[3])
 
                       x1, y1, x2, y2 = [int(i) for i in box]
+                      
+                      # -------------- Start : Find foot position -------------- #
+                      after = im0.copy()
+
+                      after_sliced = after[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
+                      before_sliced = before[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
+
+                      # Convert images to grayscale
+                      before_gray = cv2.cvtColor(before_sliced, cv2.COLOR_BGR2GRAY)
+                      after_gray = cv2.cvtColor(after_sliced, cv2.COLOR_BGR2GRAY)
+
+                      # Compute SSIM between the two images
+                      (score, diff) = structural_similarity(before_gray, after_gray, full=True)
+                      #print("Image Similarity: {:.4f}%".format(score * 100))
+
+                      # The diff image contains the actual image differences between the two images
+                      # and is represented as a floating point data type in the range [0,1] 
+                      # so we must convert the array to 8-bit unsigned integers in the range
+                      # [0,255] before we can use it with OpenCV
+                      diff = (diff * 255).astype("uint8")
+                      diff_box = cv2.merge([diff, diff, diff])
+
+                      # Threshold the difference image, followed by finding contours to
+                      # obtain the regions of the two input images that differ
+                      thresh = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+                      contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                      contours = contours[0] if len(contours) == 2 else contours[1]
+
+                      biggest_area = 0
+                      bb_box = []
+                      for c in contours:
+                          area = cv2.contourArea(c)
+                          #print('area:',area)
+
+                          if area > 200:
+                              x,y,w,h = cv2.boundingRect(c)
+                              # cal biggest area
+                              if area > biggest_area:
+                                biggest_area = area
+                                bb_box = [x,y,w,h]
+
+                              #cv2.rectangle(before, (x, y), (x + w, y + h), (36,255,12), 2)
+                              #cv2.rectangle(after, (x, y), (x + w, y + h), (36,255,12), 2)
+                              #cv2.rectangle(diff_box, (x, y), (x + w, y + h), (36,255,12), 2)
+                              #cv2.drawContours(mask, [c], 0, (255,255,255), -1)
+                              #cv2.drawContours(filled_after, [c], 0, (0,255,0), -1)
+                      if len(bb_box) > 0:
+                        x,y,w,h = bb_box
+                        posistion_roi = (int((x1+(x2-h))/2), int(y2))
+                        cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
+                        #cv2.rectangle(im0, (x1-x, y1-y), (x + w, y + h), (36,255,12), 2)
+                      else:
+                        posistion_roi = ((int(box[0]+box[2])/2), int(box[3]-5))
+                        cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
+                        #posistion_roi = (int((x1+(x2-h))/2), int(y2))
+
+                      foot_position = ' '.join(map(str, bb_box))
+                      #print('posistion_roi:', posistion_roi)
+                      # -------------- Start : Find foot position -------------- #
+
+
                       cat = int(categories[i]) if categories is not None else 0
                       id = int(identities[i]) if identities is not None else 0
                       data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
                       roi = (int((box[0]+box[2])/2),(int(box[3]-10)))
-                      zone = find_zone(box) # Edit here
+                      
+                      #zone = find_zone(box) # Edit here
+                      zone = find_zone_by_position(posistion_roi)
+
                       label = str(id) + ":"+ names[cat] + ":" + zone
                       (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
-                      cv2.rectangle(im0, (x1, y1), (x2, y2), (255,0,20), 2)
-                      cv2.rectangle(im0, (x1, y1 - 20), (x1 + w, y1), (255,144,30), -1)
+                      #cv2.rectangle(im0, (x1, y1), (x2, y2), (255,0,20), 2)
+                      #cv2.rectangle(im0, (x1, y1 - 20), (x1 + w, y1), (255,144,30), -1)
                       cv2.putText(im0, label, (x1, y1 - 5),cv2.FONT_HERSHEY_SIMPLEX, 
                                   0.6, [255, 255, 255], 1)
-                      cv2.circle(im0, roi, 3, [0,69,255], 3) # position of ROI
+                      #cv2.circle(im0, roi, 3, [0,69,255], 3) # position of ROI
 
                       # Write MOT compliant results to file
                       with open(txt_path + '.txt', 'a') as f:
                           f.write(('%g ' * 10 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
-                                                          bbox_top, bbox_w, bbox_h, -1, -1, -1, i))
+                                                          bbox_top, bbox_bx, bbox_by, -1, -1, -1, i))
                                                           
 
                       # save detail each id -> id, zone, frame
