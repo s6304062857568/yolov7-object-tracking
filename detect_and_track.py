@@ -312,7 +312,7 @@ def detect(save_img=False):
                         cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
                         #cv2.rectangle(im0, (x1-x, y1-y), (x + w, y + h), (36,255,12), 2)
                       else:
-                        posistion_roi = ((int(box[0]+box[2])/2), int(box[3]-5))
+                        posistion_roi = (int((box[0]+box[2])/2), int(box[3]-5))
                         cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
                         #posistion_roi = (int((x1+(x2-h))/2), int(y2))
 
