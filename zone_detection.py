@@ -34,6 +34,34 @@ def find_zone(bboxes):
 
   return ""
 
+def find_zone_by_position(position):
+  zones = []
+
+  ice_polygon_xy = [(830, 80),(735, 235),(840, 265),(910, 105)]
+  water_polygon_xy = [(740, 55),(625, 200),(735, 235),(830, 80)]
+  alcohol_polygon_xy = [(625, 200),(415, 467),(530, 525),(735, 235)]
+  popsicle_polygon_xy = [(735, 235),(530, 525),(675, 590),(840, 265)]
+  counter_polygon_xy = [(415, 467),(235, 718),(460, 718),(565, 540)]
+  snack_polygon_xy = [(565, 540),(460, 718),(725, 718),(760, 630)]
+
+  zones.append(snack_polygon_xy)
+  zones.append(counter_polygon_xy)
+  zones.append(popsicle_polygon_xy)
+  zones.append(ice_polygon_xy)
+  zones.append(water_polygon_xy)
+  zones.append(alcohol_polygon_xy)
+
+  index = 0
+  for zone in zones:
+      polygon_zone_shape = Polygon(zone)
+      if (polygon_zone_shape.intersects(Point(position))):
+        #print('zone',number_to_string(index))
+        return number_to_string(index)
+      
+      index += 1
+
+  return ""
+
 def number_to_string(argument):
     if argument == 0:
         return "snack"
