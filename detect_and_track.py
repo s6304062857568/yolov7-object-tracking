@@ -27,41 +27,6 @@ from skimage.metrics import structural_similarity
 import skimage
 from sort import *
 
-#............................... Bounding Boxes Drawing ............................
-"""Function to Draw Bounding boxes"""
-def draw_boxes(img, bbox, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
-    for i, box in enumerate(bbox):
-        x1, y1, x2, y2 = [int(i) for i in box]
-        x1 += offset[0]
-        x2 += offset[0]
-        y1 += offset[1]
-        y2 += offset[1]
-        cat = int(categories[i]) if categories is not None else 0
-        id = int(identities[i]) if identities is not None else 0
-        data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
-        roi = (int((box[0]+box[2])/2),(int(box[3]-10)))
-        zone = find_zone(box) # Edit here
-        label = str(id) + ":"+ names[cat] + ":" + zone
-        (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
-        cv2.rectangle(img, (x1, y1), (x2, y2), (255,0,20), 2)
-        cv2.rectangle(img, (x1, y1 - 20), (x1 + w, y1), (255,144,30), -1)
-        cv2.putText(img, label, (x1, y1 - 5),cv2.FONT_HERSHEY_SIMPLEX, 
-                    0.6, [255, 255, 255], 1)
-        #cv2.circle(img, roi, 3, [255,69,0], 3)   #position of ROI
-        # cv2.circle(img, data, 6, color,-1)   #centroid of box
-        txt_str = ""
-        if save_with_object_id:
-            txt_str += "%i %i %f %f %f %f %f %f" % (
-                id, cat, int(box[0])/img.shape[1], int(box[1])/img.shape[0] , int(box[2])/img.shape[1], int(box[3])/img.shape[0] ,int(box[0] + (box[2] * 0.5))/img.shape[1] ,
-                int(box[1] + (
-                    box[3]* 0.5))/img.shape[0])
-            txt_str += "\n"
-            with open(path + '.txt', 'a') as f:
-                f.write(txt_str)
-    return img
-#..............................................................................
-
-
 def detect(save_img=False):
     source, weights, view_img, save_txt, imgsz, trace, colored_trk, save_bbox_dim, save_with_object_id= opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.colored_trk, opt.save_bbox_dim, opt.save_with_object_id
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
@@ -179,6 +144,23 @@ def detect(save_img=False):
             if frame_idx == 0:
               before = im0.copy()
 
+            # font
+            font = cv2.FONT_HERSHEY_SIMPLEX
+              
+            # org
+            org = (10, 50)
+              
+            # fontScale
+            fontScale = 1
+              
+            # Blue color in BGR
+            color = (255, 0, 0)
+              
+            # Line thickness of 2 px
+            thickness = 2
+
+            cv2.putText(im0, str(frame_idx+1), org, font, fontScale, color, thickness, cv2.LINE_AA)
+
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
             #txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
@@ -259,7 +241,7 @@ def detect(save_img=False):
                       bbox_bx = int(box[2])
                       bbox_by = int(box[3])
 
-                      x1, y1, x2, y2 = [int(i) for i in box]
+                      x1, y1, x2, y2 = [int(abs(i)) for i in box]
                       
                       # -------------- Start : Find foot position -------------- #
                       after = im0.copy()
@@ -268,9 +250,16 @@ def detect(save_img=False):
                       before_sliced = before[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
 
                       # Convert images to grayscale
-                      before_gray = cv2.cvtColor(before_sliced, cv2.COLOR_BGR2GRAY)
-                      after_gray = cv2.cvtColor(after_sliced, cv2.COLOR_BGR2GRAY)
 
+                      try:
+                        before_gray = cv2.cvtColor(before_sliced, cv2.COLOR_BGR2GRAY)
+                        after_gray = cv2.cvtColor(after_sliced, cv2.COLOR_BGR2GRAY)
+                      except:
+                        print("An exception occurred")  
+                        print("before:", before.shape)
+                        print("before_sliced:", before_sliced.shape)
+                        print("x1, y1, x2, y2 -->",x1, y1, x2, y2)
+                      
                       # Compute SSIM between the two images
                       (score, diff) = structural_similarity(before_gray, after_gray, full=True)
                       #print("Image Similarity: {:.4f}%".format(score * 100))
@@ -301,24 +290,16 @@ def detect(save_img=False):
                                 biggest_area = area
                                 bb_box = [x,y,w,h]
 
-                              #cv2.rectangle(before, (x, y), (x + w, y + h), (36,255,12), 2)
-                              #cv2.rectangle(after, (x, y), (x + w, y + h), (36,255,12), 2)
-                              #cv2.rectangle(diff_box, (x, y), (x + w, y + h), (36,255,12), 2)
-                              #cv2.drawContours(mask, [c], 0, (255,255,255), -1)
-                              #cv2.drawContours(filled_after, [c], 0, (0,255,0), -1)
                       if len(bb_box) > 0:
                         x,y,w,h = bb_box
                         posistion_roi = (int((x1+(x2-h))/2), int(y2))
                         cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
-                        #cv2.rectangle(im0, (x1-x, y1-y), (x + w, y + h), (36,255,12), 2)
                       else:
                         posistion_roi = (int((box[0]+box[2])/2), int(box[3]-5))
                         cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
-                        #posistion_roi = (int((x1+(x2-h))/2), int(y2))
 
-                      foot_position = ' '.join(map(str, bb_box))
                       #print('posistion_roi:', posistion_roi)
-                      # -------------- Start : Find foot position -------------- #
+                      # -------------- End : Find foot position -------------- #
 
 
                       cat = int(categories[i]) if categories is not None else 0
@@ -331,8 +312,8 @@ def detect(save_img=False):
 
                       label = str(id) + ":"+ names[cat] + ":" + zone
                       (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
-                      #cv2.rectangle(im0, (x1, y1), (x2, y2), (255,0,20), 2)
-                      #cv2.rectangle(im0, (x1, y1 - 20), (x1 + w, y1), (255,144,30), -1)
+                      cv2.rectangle(im0, (x1, y1), (x2, y2), (255,0,20), 2)
+                      cv2.rectangle(im0, (x1, y1 - 20), (x1 + w, y1), (255,144,30), -1)
                       cv2.putText(im0, label, (x1, y1 - 5),cv2.FONT_HERSHEY_SIMPLEX, 
                                   0.6, [255, 255, 255], 1)
                       #cv2.circle(im0, roi, 3, [0,69,255], 3) # position of ROI
@@ -358,8 +339,6 @@ def detect(save_img=False):
                         zone_dict = {zone : frame_set}
                         id_zone_frame[id] = zone_dict
                       # -------------- End : Custom code -------------- #
-
-                      
                       
                 #........................................................
                 
