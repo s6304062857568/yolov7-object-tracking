@@ -36,7 +36,7 @@ def detect(save_img=False):
 
     #.... Initialize SORT .... 
     #......................... 
-    sort_max_age = 5 
+    sort_max_age = 9 
     sort_min_hits = 2
     sort_iou_thresh = 0.2
     sort_tracker = Sort(max_age=sort_max_age,
@@ -190,39 +190,6 @@ def detect(save_img=False):
 
                 txt_str = ""
 
-                #loop over tracks
-                # for track in tracks:
-                #     # color = compute_color_for_labels(id)
-                #     #draw colored tracks
-                #     if colored_trk:
-                #         [cv2.line(im0, (int(track.roiarr[i][0]),
-                #                     int(track.roiarr[i][1])), 
-                #                     (int(track.roiarr[i+1][0]),
-                #                     int(track.roiarr[i+1][1])),
-                #                     rand_color_list[track.id], thickness=2) 
-                #                     for i,_ in  enumerate(track.roiarr) 
-                #                       if i < len(track.roiarr)-1 ] 
-                #     #draw same color tracks
-                #     else:
-                #         [cv2.line(im0, (int(track.roiarr[i][0]),
-                #                     int(track.roiarr[i][1])), 
-                #                     (int(track.roiarr[i+1][0]),
-                #                     int(track.roiarr[i+1][1])),
-                #                     (255,0,0), thickness=2) 
-                #                     for i,_ in  enumerate(track.roiarr) 
-                #                       if i < len(track.roiarr)-1 ] 
-
-#                     if save_txt and not save_with_object_id:
-#                         # Normalize coordinates
-#                         txt_str += "%i %i %f %f" % (track.id, track.detclass, track.centroidarr[-1][0] / im0.shape[1], track.centroidarr[-1][1] / im0.shape[0])
-#                         if save_bbox_dim:
-#                             txt_str += " %f %f" % (np.abs(track.bbox_history[-1][0] - track.bbox_history[-1][2]) / im0.shape[0], np.abs(track.bbox_history[-1][1] - track.bbox_history[-1][3]) / im0.shape[1])
-#                         txt_str += "\n"
-                
-#                 if save_txt and not save_with_object_id:
-#                     with open(txt_path + '.txt', 'a') as f:
-#                         f.write(txt_str)
-
                 # draw boxes for visualization
                 if len(tracked_dets)>0:
                     bbox_xyxy = tracked_dets[:,:4]
@@ -323,7 +290,6 @@ def detect(save_img=False):
                           f.write(('%g ' * 10 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
                                                           bbox_top, bbox_bx, bbox_by, -1, -1, -1, i))
                                                           
-
                       # save detail each id -> id, zone, frame
                       if id in id_zone_frame:
                         zone_dict = id_zone_frame[id]
