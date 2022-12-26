@@ -143,6 +143,9 @@ def detect(save_img=False):
 
             if frame_idx == 0:
               before = im0.copy()
+              # Draw a filled white polygon
+              points = np.array([[613,455], [697,327], [840,370], [785,510]])
+              cv2.fillPoly(after, pts=[points], color=(255, 255, 255))
 
             # font
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -212,6 +215,10 @@ def detect(save_img=False):
                       
                       # -------------- Start : Find foot position -------------- #
                       after = im0.copy()
+                      
+                      # Draw a filled white polygon
+                      points = np.array([[613,455], [697,327], [840,370], [785,510]])
+                      cv2.fillPoly(after, pts=[points], color=(255, 255, 255))
 
                       after_sliced = after[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
                       before_sliced = before[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
@@ -250,7 +257,7 @@ def detect(save_img=False):
                           area = cv2.contourArea(c)
                           #print('area:',area)
 
-                          if area > 200:
+                          if area > 80 and area < 1000:
                               x,y,w,h = cv2.boundingRect(c)
                               # cal biggest area
                               if area > biggest_area:
@@ -259,13 +266,13 @@ def detect(save_img=False):
 
                       if len(bb_box) > 0:
                         x,y,w,h = bb_box
-                        posistion_roi = (int((x1+(x2-h))/2), int(y2))
+                        position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # bottom centroid of biggest contourArea
                         cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
                       else:
-                        posistion_roi = (int((box[0]+box[2])/2), int(box[3]-5))
-                        cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
+                        position_roi = (int((box[0]+box[2])/2), int(box[3]-5)) # centroid of bounding box
+                        cv2.circle(im0, position_roi, 2, [255,255,255], 2) # position of ROI
 
-                      #print('posistion_roi:', posistion_roi)
+                      #print('position_roi:', position_roi)
                       # -------------- End : Find foot position -------------- #
 
 
@@ -275,7 +282,7 @@ def detect(save_img=False):
                       roi = (int((box[0]+box[2])/2),(int(box[3]-10)))
                       
                       #zone = find_zone(box) # Edit here
-                      zone = find_zone_by_position(posistion_roi)
+                      zone = find_zone_by_position(position_roi)
 
                       label = str(id) + ":"+ names[cat] + ":" + zone
                       (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
