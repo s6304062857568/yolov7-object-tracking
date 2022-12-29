@@ -145,7 +145,7 @@ def detect(save_img=False):
               before = im0.copy()
               # Draw a filled white polygon
               points = np.array([[613,455], [697,327], [840,370], [785,510]])
-              cv2.fillPoly(after, pts=[points], color=(255, 255, 255))
+              cv2.fillPoly(before, pts=[points], color=(255, 255, 255))
 
             # font
             font = cv2.FONT_HERSHEY_SIMPLEX
