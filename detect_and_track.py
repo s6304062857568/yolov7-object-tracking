@@ -252,12 +252,12 @@ def detect(save_img=False):
                       contours = contours[0] if len(contours) == 2 else contours[1]
 
                       biggest_area = 0
-                      bb_box = []
+                      bb_box = [] # fix here
                       for c in contours:
                           area = cv2.contourArea(c)
                           #print('area:',area)
 
-                          if area > 80 and area < 1000:
+                          if int(area) > 80 and int(area) < 1000:
                               x,y,w,h = cv2.boundingRect(c)
                               # cal biggest area
                               if area > biggest_area:
@@ -267,7 +267,7 @@ def detect(save_img=False):
                       if len(bb_box) > 0:
                         x,y,w,h = bb_box
                         position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # bottom centroid of biggest contourArea
-                        cv2.circle(im0, posistion_roi, 2, [0,69,255], 2) # position of ROI
+                        cv2.circle(im0, position_roi, 2, [0,69,255], 2) # position of ROI
                       else:
                         position_roi = (int((box[0]+box[2])/2), int(box[3]-5)) # centroid of bounding box
                         cv2.circle(im0, position_roi, 2, [255,255,255], 2) # position of ROI
