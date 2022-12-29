@@ -105,6 +105,7 @@ def detect(save_img=False):
 
     id_zone_frame = {} # Declare variables
     before = None # image blueprint
+    points = np.array([[613,455], [697,327], [840,370], [785,510]]) # point for prevent reflect
     
     for frame_idx, (path, img, im0s, vid_cap) in enumerate(dataset):
         img = torch.from_numpy(img).to(device)
@@ -144,7 +145,6 @@ def detect(save_img=False):
             if frame_idx == 0:
               before = im0.copy()
               # Draw a filled white polygon
-              points = np.array([[613,455], [697,327], [840,370], [785,510]])
               cv2.fillPoly(before, pts=[points], color=(255, 255, 255))
 
             # font
@@ -215,24 +215,15 @@ def detect(save_img=False):
                       
                       # -------------- Start : Find foot position -------------- #
                       after = im0.copy()
-                      
                       # Draw a filled white polygon
-                      points = np.array([[613,455], [697,327], [840,370], [785,510]])
                       cv2.fillPoly(after, pts=[points], color=(255, 255, 255))
 
                       after_sliced = after[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
                       before_sliced = before[int(y1+(y2-y1)-50):int(y2), int((x1)):int(x2)]
 
                       # Convert images to grayscale
-
-                      try:
-                        before_gray = cv2.cvtColor(before_sliced, cv2.COLOR_BGR2GRAY)
-                        after_gray = cv2.cvtColor(after_sliced, cv2.COLOR_BGR2GRAY)
-                      except:
-                        print("An exception occurred")  
-                        print("before:", before.shape)
-                        print("before_sliced:", before_sliced.shape)
-                        print("x1, y1, x2, y2 -->",x1, y1, x2, y2)
+                      before_gray = cv2.cvtColor(before_sliced, cv2.COLOR_BGR2GRAY)
+                      after_gray = cv2.cvtColor(after_sliced, cv2.COLOR_BGR2GRAY)
                       
                       # Compute SSIM between the two images
                       (score, diff) = structural_similarity(before_gray, after_gray, full=True)
@@ -257,7 +248,7 @@ def detect(save_img=False):
                           area = cv2.contourArea(c)
                           #print('area:',area)
 
-                          if int(area) > 80 and int(area) < 1000:
+                          if int(area) > 80:
                               x,y,w,h = cv2.boundingRect(c)
                               # cal biggest area
                               if area > biggest_area:
@@ -266,11 +257,12 @@ def detect(save_img=False):
 
                       if len(bb_box) > 0:
                         x,y,w,h = bb_box
-                        position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # bottom centroid of biggest contourArea
-                        cv2.circle(im0, position_roi, 2, [0,69,255], 2) # position of ROI
+                        #position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # centroid of biggest contourArea
+                        position_roi = (int(x1+x+(w/2)), int(y2-3)) # bottom centroid of biggest contourArea
+                        cv2.circle(im0, position_roi, 3, [0,69,255], 3) # position of ROI
                       else:
                         position_roi = (int((box[0]+box[2])/2), int(box[3]-5)) # centroid of bounding box
-                        cv2.circle(im0, position_roi, 2, [255,255,255], 2) # position of ROI
+                        cv2.circle(im0, position_roi, 3, [255,255,255], 3) # position of ROI
 
                       #print('position_roi:', position_roi)
                       # -------------- End : Find foot position -------------- #
