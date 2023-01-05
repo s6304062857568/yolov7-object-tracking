@@ -1,48 +1,16 @@
 import cv2
+import numpy as np
 from shapely.geometry import *
-
-def find_zone(bboxes):
-  MAX_H = 720
-  MAX_W = 1280
-  zones = []
-
-  ice_polygon_xy = [(830, 80),(735, 235),(840, 265),(910, 105)]
-  water_polygon_xy = [(740, 55),(625, 200),(735, 235),(830, 80)]
-  alcohol_polygon_xy = [(625, 200),(415, 467),(530, 525),(735, 235)]
-  popsicle_polygon_xy = [(735, 235),(530, 525),(675, 590),(840, 265)]
-  counter_polygon_xy = [(415, 467),(235, 718),(460, 718),(565, 540)]
-  snack_polygon_xy = [(565, 540),(460, 718),(725, 718),(760, 630)]
-
-  zones.append(snack_polygon_xy)
-  zones.append(counter_polygon_xy)
-  zones.append(popsicle_polygon_xy)
-  zones.append(ice_polygon_xy)
-  zones.append(water_polygon_xy)
-  zones.append(alcohol_polygon_xy)
-
-  posistion_roi = ((int(bboxes[0]+bboxes[2])/2), int(bboxes[3]-10))
-  index = 0
-  for zone in zones:
-      polygon_zone_shape = Polygon(zone)
-      #intersection = polygon_zone_shape.intersection(pol)
-      #intersection_ratio = intersection.area / pol.area
-      if (polygon_zone_shape.intersects(Point(posistion_roi))):
-        #print('zone',number_to_string(index))
-        return number_to_string(index)
-      
-      index += 1
-
-  return ""
 
 def find_zone_by_position(position):
   zones = []
 
-  ice_polygon_xy = [(830, 80),(735, 235),(840, 265),(910, 105)]
-  water_polygon_xy = [(740, 55),(625, 200),(735, 235),(830, 80)]
-  alcohol_polygon_xy = [(625, 200),(415, 467),(530, 525),(735, 235)]
-  popsicle_polygon_xy = [(735, 235),(530, 525),(675, 590),(840, 265)]
-  counter_polygon_xy = [(415, 467),(235, 718),(460, 718),(565, 540)]
-  snack_polygon_xy = [(565, 540),(460, 718),(725, 718),(760, 630)]
+  ice_polygon_xy = ((710, 235), (793, 110), (855, 135), (780, 265))
+  water_polygon_xy = ((630, 207), (755, 55), (816, 75), (710, 235))
+  alcohol_polygon_xy = ((415, 489), (630, 207), (710, 235), (505, 527))
+  popsicle_polygon_xy = ((505, 527), (710, 235), (780, 265), (585, 560))
+  counter_polygon_xy = ((460, 508), (585, 560), (480, 718), (278, 718))
+  snack_polygon_xy = ((567, 588), (735, 655), (705, 718), (480, 718))
 
   zones.append(snack_polygon_xy)
   zones.append(counter_polygon_xy)
@@ -79,35 +47,36 @@ def number_to_string(argument):
     return "undefined"
 
 def draw_ROI(im0):
-  cv2.line(im0,(830,80),(910,105),(0, 125, 255),2) # โซนน้ำแข็ง เส้นบน]
-  cv2.line(im0,(735,235),(840,265),(0, 125, 255),2) # โซนน้ำแข็ง เส้นล่าง
-  cv2.line(im0,(830,80),(735,235),(0, 125, 255),2) # โซนน้ำแข็ง เส้นซ้าย(xบน,xล่าง)
-  cv2.line(im0,(910,105),(840,265),(0, 125, 255),2) # โซนน้ำแข็ง เส้นขวา(yบน,yล่าง)
+  # Reference : https://www.geeksforgeeks.org/python-opencv-cv2-polylines-method/
+  pts_counter = np.array([[460, 508], [585, 560], [480, 718], [278, 718]], np.int32)
+  pts_counter = pts_counter.reshape((-1, 1, 2))
 
-  cv2.line(im0,(735,235),(840,265),(0, 255, 0),2) # โซนไอติม เส้นบน
-  cv2.line(im0,(530,525),(675,590),(0, 255, 0),2) # โซนไอติม เส้นล่าง ซ้าย - ขวา
-  cv2.line(im0,(735,235),(530,525),(0, 255, 0),2) # โซนไอติม เส้นซ้าย(xบน,xล่าง)
-  cv2.line(im0,(840,265),(675,590),(0, 255, 0),2) # โซนไอติม เส้นขวา(yบน,yล่าง)
+  pts_snack = np.array([[567, 588], [735, 655], [705, 718], [480, 718]], np.int32)
+  pts_snack = pts_snack.reshape((-1, 1, 2))
 
-  # Alcohol
-  cv2.line(im0,(625,200),(735,235),(125, 0, 255),2) # Alcohol เส้นบน
-  cv2.line(im0,(625,200),(415,467),(125, 0, 255),2) # Alcohol เส้นซ้าย
-  cv2.line(im0,(415,467),(530,525),(125, 0, 255),2) # Alcohol เส้นล่าง
-  cv2.line(im0,(735,235),(530,525),(125, 0, 255),2) # Alcohol เส้นขวา บน-ล่าง
+  pts_popsicle = np.array([[505, 527], [710, 235], [780, 265], [585, 560]], np.int32)
+  pts_popsicle = pts_popsicle.reshape((-1, 1, 2))
 
-  # Water
-  cv2.line(im0,(740,55),(830,80),(125, 0, 80),2) # Water เส้นบน
-  cv2.line(im0,(740,55),(625,200),(125, 0, 80),2) # Water เส้นซ้าย
-  cv2.line(im0,(625,200),(735,235),(125, 0, 80),2) # Water เส้นล่าง
-  cv2.line(im0,(830,80),(735,235),(125, 0, 80),2) # Water เส้นขวา บน-ล่าง
+  pts_alcohol = np.array([[415, 489], [630, 207], [710, 235], [505, 527]], np.int32)
+  pts_alcohol = pts_alcohol.reshape((-1, 1, 2))
 
-  cv2.line(im0,(415,467),(565,540),(0, 255, 0),2) # Counter เส้นบน
-  cv2.line(im0,(235,718),(415,467),(0, 255, 0),2) # Counter เส้นซ้าย
-  cv2.line(im0,(235,718),(460,718),(0, 255, 0),2) # Counter เส้นล่าง
-  cv2.line(im0,(565,540),(460,718),(0, 255, 0),2) # Counter เส้นขวา บน-ล่าง
+  pts_water = np.array([[630, 207], [755, 55], [816, 75], [710, 235]], np.int32)
+  pts_water = pts_water.reshape((-1, 1, 2))
 
-  cv2.line(im0,(565,540),(760,630),(255, 125, 0),2) # Snack เส้นบน
-  cv2.line(im0,(460,718),(725,718),(255, 125, 0),2) # Snack เส้นซ้าย
-  cv2.line(im0,(565,540),(460,718),(255, 125, 0),2) # Snack เส้นล่าง
-  cv2.line(im0,(760,630),(725,718),(255, 125, 0),2) # Snack เส้นขวา
-  
+  pts_ice = np.array([[710, 235], [793, 110], [855, 135], [780, 265]], np.int32)
+  pts_ice = pts_ice.reshape((-1, 1, 2))
+
+  isClosed = True
+    
+  # Blue color in BGR
+  color = (255, 0, 0)
+    
+  # Line thickness of  px
+  thickness = 1
+
+  cv2.polylines(im0, [pts_counter], isClosed, (0, 255, 0), thickness)
+  cv2.polylines(im0, [pts_snack], isClosed, (255, 125, 0), thickness)
+  cv2.polylines(im0, [pts_popsicle], isClosed, (0, 255, 0), thickness)
+  cv2.polylines(im0, [pts_alcohol], isClosed, (125, 0, 255), thickness)
+  cv2.polylines(im0, [pts_water], isClosed, (125, 0, 80), thickness)
+  cv2.polylines(im0, [pts_ice], isClosed, (0, 125, 255), thickness)
