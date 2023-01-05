@@ -8,7 +8,7 @@ from numpy import random
 from random import randint
 import torch.backends.cudnn as cudnn
 
-from zone_detection import find_zone, find_zone_by_position, draw_ROI
+from zone_detection import find_zone_by_position, draw_ROI
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -259,10 +259,10 @@ def detect(save_img=False):
                         x,y,w,h = bb_box
                         #position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # centroid of biggest contourArea
                         position_roi = (int(x1+x+(w/2)), int(y2-3)) # bottom centroid of biggest contourArea
-                        cv2.circle(im0, position_roi, 3, [0,69,255], 3) # position of ROI
+                        cv2.circle(im0, position_roi, 2, [0,69,255], 2) # position of ROI
                       else:
                         position_roi = (int((box[0]+box[2])/2), int(box[3]-5)) # centroid of bounding box
-                        cv2.circle(im0, position_roi, 3, [255,255,255], 3) # position of ROI
+                        cv2.circle(im0, position_roi, 2, [255,255,255], 2) # position of ROI
 
                       #print('position_roi:', position_roi)
                       # -------------- End : Find foot position -------------- #
