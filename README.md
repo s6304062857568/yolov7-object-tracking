@@ -1,17 +1,16 @@
 # yolov7-object-tracking
 
 **Features**
-- [ ] a
-- [ ] b
-- [ ] c
+- [x] find properly position of person to detect zone name
+- [x] summary time spend of each person in each zones
 
 ---
 **TODO**
-- [ ] edit ROI in each zone 
-- [ ] pre-process draw blueprint image
-- [ ] test detect ROI based on centroid
+- [x] edit ROI in each zone 
+- [x] pre-process draw blueprint image
+- [x] test detect ROI based on centroid or foot
 - [x] detect ROI
-- [x] summary duration in each ID
+- [x] total duration of time each ID spent in each zone
 - [x] save file in MOT format
 - [ ] more.
 
