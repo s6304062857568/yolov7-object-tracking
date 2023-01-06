@@ -264,16 +264,13 @@ def detect(save_img=False):
                         position_roi = (int((box[0]+box[2])/2), int(box[3]-5)) # centroid of bounding box
                         cv2.circle(im0, position_roi, 2, [255,255,255], 2) # position of ROI
 
-                      #print('position_roi:', position_roi)
                       # -------------- End : Find foot position -------------- #
-
 
                       cat = int(categories[i]) if categories is not None else 0
                       id = int(identities[i]) if identities is not None else 0
                       data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
                       roi = (int((box[0]+box[2])/2),(int(box[3]-10)))
                       
-                      #zone = find_zone(box) # Edit here
                       zone = find_zone_by_position(position_roi)
 
                       label = str(id) + ":"+ names[cat] + ":" + zone
@@ -286,8 +283,8 @@ def detect(save_img=False):
 
                       # Write MOT compliant results to file
                       with open(txt_path + '.txt', 'a') as f:
-                          f.write(('%g ' * 10 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
-                                                          bbox_top, bbox_bx, bbox_by, -1, -1, -1, i))
+                          f.write(('%g ' * 12 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
+                                                          bbox_top, bbox_bx, bbox_by, -1, -1, -1, i, position_roi[0], position_roi[1]))
                                                           
                       # save detail each id -> id, zone, frame
                       if id in id_zone_frame:
