@@ -9,8 +9,8 @@ def find_zone_by_position(position):
   water_polygon_xy = ((630, 207), (755, 55), (816, 75), (710, 235))
   alcohol_polygon_xy = ((415, 489), (630, 207), (710, 235), (505, 527))
   popsicle_polygon_xy = ((505, 527), (710, 235), (780, 265), (585, 560))
-  counter_polygon_xy = ((460, 508), (585, 560), (480, 718), (278, 718))
-  snack_polygon_xy = ((567, 588), (735, 655), (705, 718), (480, 718))
+  counter_polygon_xy = ((460, 508), (585, 560), (480, 720), (278, 720))
+  snack_polygon_xy = ((567, 588), (735, 655), (705, 720), (480, 720))
 
   zones.append(snack_polygon_xy)
   zones.append(counter_polygon_xy)
