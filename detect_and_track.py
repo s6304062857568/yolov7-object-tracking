@@ -105,7 +105,7 @@ def detect(save_img=False):
 
     id_zone_frame = {} # Declare variables
     before = None # image blueprint
-    points = np.array([[613,455], [697,327], [840,370], [785,510]]) # point for prevent reflect
+    points = np.array([[775,210], [890,240], [785,515], [612,460]]) # point for prevent reflect
     
     for frame_idx, (path, img, im0s, vid_cap) in enumerate(dataset):
         img = torch.from_numpy(img).to(device)
