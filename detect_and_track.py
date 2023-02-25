@@ -147,6 +147,9 @@ def detect(save_img=False):
               # Draw a filled white polygon
               cv2.fillPoly(before, pts=[points], color=(255, 255, 255))
 
+            # fill white background
+            cv2.fillPoly(im0, pts=[points], color=(255, 255, 255))
+
             # font
             font = cv2.FONT_HERSHEY_SIMPLEX
               
@@ -255,11 +258,16 @@ def detect(save_img=False):
                                 biggest_area = area
                                 bb_box = [x,y,w,h]
 
+                      #cv2.rectangle(im0, (x1, y1), (x2, y2), (255,0,20), 2)
                       if len(bb_box) > 0:
                         x,y,w,h = bb_box
                         #position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # centroid of biggest contourArea
-                        position_roi = (int(x1+x+(w/2)), int(y2-3)) # bottom centroid of biggest contourArea
+                        #position_roi = (int(x1+x+(w/2)), int(y2-5)) # bottom centroid of biggest contourArea
+                        position_roi = (int(x1+x+(w/2)), int(y2-(h/2))) # bottom centroid of biggest contourArea
                         cv2.circle(im0, position_roi, 2, [0,69,255], 2) # position of ROI
+
+                        cv2.rectangle(im0, (x1+x+4, y2-y-h+2), (x1+x+w-4, y2-y-4), (0,215,255), 1) # Bounding box biggest
+                        cv2.rectangle(im0, (x1+2, y2-50), (x2-2, y2-2), (0,0,255), 1) # Bounding box selected
                       else:
                         position_roi = (int((box[0]+box[2])/2), int(box[3]-5)) # centroid of bounding box
                         cv2.circle(im0, position_roi, 2, [255,255,255], 2) # position of ROI
@@ -317,7 +325,7 @@ def detect(save_img=False):
 
             # Save results (image with detections)
             if save_img:
-                #draw_ROI(im0)
+                draw_ROI(im0)
 
                 if dataset.mode == 'image':
                     cv2.imwrite(save_path, im0)
