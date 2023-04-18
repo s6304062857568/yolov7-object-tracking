@@ -3,9 +3,12 @@
 **Features**
 - [x] find properly position of person to detect zone name
 - [x] summary time spend of each person in each zones
+- [ ] EXPERIMENTAL EVALUATION
 
 ---
 **TODO**
+- [ ] step by step to visualize proposed method
+- [ ] define and visualize except area
 - [x] edit ROI in each zone 
 - [x] pre-process draw blueprint image
 - [x] test detect ROI based on centroid or foot
